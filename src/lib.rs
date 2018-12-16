@@ -1,21 +1,11 @@
 #![feature(try_from)]
 extern crate axgeom;
-extern crate compt;
 extern crate ordered_float;
-extern crate dinotree_alg;
-extern crate dinotree;
-extern crate dinotree_measure;
 extern crate dists;
 extern crate num;
 
-
-
-use dinotreedemo::*;
-use ascii_num::*;
-use ordered_float::*;
 use axgeom::*;
 
-use crate::menu_primitives::*;
 
 trait MenuTrait:Send+Sync{
     fn step(&mut self,poses:&[Vec2],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse);

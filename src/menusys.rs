@@ -4,8 +4,6 @@ extern crate ascii_num;
 extern crate ordered_float;
 
 use dinotreedemo::*;
-use ascii_num::*;
-use ordered_float::*;
 use axgeom::*;
 
 use crate::menu_primitives::*;
@@ -43,14 +41,14 @@ impl Menu{
         let startx=500.0;
         let starty=500.0;
 
-        let border= axgeom::Rect::new(NotNaN::new(-startx).unwrap(),NotNaN::new(startx).unwrap(),NotNaN::new(-starty).unwrap(),NotNaN::new(starty).unwrap());
+        //let border= axgeom::Rect::new(NotNaN::new(-startx).unwrap(),NotNaN::new(startx).unwrap(),NotNaN::new(-starty).unwrap(),NotNaN::new(starty).unwrap());
         let borderf32= axgeom::Rect::new(-startx,startx ,-starty,starty);
 
         //used as the building block for all positions
         let unit=8.0;//bot::get_unit(startx,starty);
         
-        let br=unit*1.0;
-        let mr=unit*10.0;
+        //let br=unit*1.0;
+        //let mr=unit*10.0;
 
         //let (bot_prop,mouse_prop)=bot::create_from_radius(br,mr);
         //let bots=bot::create_bots(num_bots,&border,&bot_prop);
@@ -87,7 +85,7 @@ impl Menu{
         let numberthing={
             let x=startx as f32-100.0;
             let y=starty as f32-200.0;
-            NumberThing::new(unit*15.0,unit*2.0,10_000,Vec2::new(x,y))
+            NumberThing::new(unit*15.0,unit*2.0,40_000,Vec2::new(x,y))
         };
 
         let col=COLS[0];
@@ -105,7 +103,7 @@ impl Menu{
 
 
 impl MenuTrait for Menu{
-    fn step(&mut self,poses:&[Vec2],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2],_border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
@@ -146,7 +144,7 @@ impl MenuTrait for Menu{
             }
         }
 
-        let col=COLS[self.col_counter]; ///TODO only show when it changes?
+        let col=COLS[self.col_counter]; //TODO only show when it changes?
         let g=GameResponse{new_game_world:None,color:Some(col),is_game:false};
         (None,g)
     }
