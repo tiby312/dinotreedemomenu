@@ -62,7 +62,6 @@ impl Clicker{
 }
 
 /*
-
 pub struct OnOffButton{
     on_but:Button,
     off_but:Button,
@@ -98,7 +97,6 @@ impl OnOffButton{
     }
 
 }
-
 */
 
 pub struct Button{
