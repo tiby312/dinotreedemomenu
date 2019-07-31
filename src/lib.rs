@@ -3,18 +3,21 @@ extern crate ordered_float;
 extern crate dists;
 extern crate num;
 
-use axgeom::*;
 
+use cgmath::prelude::*;
+use cgmath::Vector2;
+use cgmath::vec2;
+
+use axgeom::Rect;
 
 trait MenuTrait:Send+Sync{
-    fn step(&mut self,poses:&[Vec2],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse);
+    fn step(&mut self,poses:&[Vector2<f32>],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse);
     fn get_bots(&self)->&[Bot];
 }
 
 
 pub use dinotreedemo::compute_border;
-pub use dinotreedemo::Bot;
-pub use dinotreedemo::Vec2;
+pub use duckduckgeo::bot::*;
 
 
 pub struct GameResponse
@@ -33,7 +36,7 @@ impl MenuGame{
         (MenuGame{state:Box::new(a)},GameResponse{color:Some(col),is_game:false,new_game_world:Some((rect,radius))})
     }
 
-    pub fn step(&mut self,poses:&[Vec2],border:&Rect<f32>)->GameResponse{
+    pub fn step(&mut self,poses:&[Vector2<f32>],border:&Rect<f32>)->GameResponse{
         let (a,b)=self.state.step(poses,border);
         match a{
             Some(x)=>{

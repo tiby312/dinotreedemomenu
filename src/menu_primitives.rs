@@ -1,8 +1,11 @@
 use axgeom;
-
 use ascii_num;
-use dinotreedemo::Vec2;
-use dinotreedemo::*;
+
+
+use cgmath::prelude::*;
+use cgmath::Vector2;
+use cgmath::vec2;
+pub use duckduckgeo::bot::*;
 
 
 //TODO put this somewhere else.
@@ -37,10 +40,10 @@ impl Clicker{
     pub fn new()->Clicker{
         Clicker{there_was_finger:false,there_is_finger:false}
     }
-    pub fn update(&mut self,dim:&axgeom::Rect<f32>,poses:&[Vec2])->bool{
+    pub fn update(&mut self,dim:&axgeom::Rect<f32>,poses:&[Vector2<f32>])->bool{
 
         for i in poses.iter(){
-            if dim.contains_point(i.0){
+            if dim.contains_point([i.x,i.y]){
                 self.there_is_finger=true;
             } 
         }
@@ -110,13 +113,13 @@ impl Button{
     pub fn get_dim(&self)->&axgeom::Rect<f32>{
         &self.padding
     }
-    pub fn new(topleft:Vec2,poses:Vec<(usize,usize)>,spacing:f32)->Button{
+    pub fn new(topleft:Vector2<f32>,poses:Vec<(usize,usize)>,spacing:f32)->Button{
         let m=poses.iter().fold((0,0), |acc, &x| {(acc.0.max(x.0),acc.1.max(x.1))});
         
         let dimx=m.0 as f32*spacing;
         let dimy=m.1 as f32*spacing;
-        let k=topleft.0;//get();
-        let dim=axgeom::Rect::new(k[0],k[0]+dimx,k[1],k[1]+dimy);
+        let k=topleft;//get();
+        let dim=axgeom::Rect::new(k.x,k.x+dimx,k.y,k.y+dimy);
         
         let mut padding=dim;
         padding.grow(spacing*2.0);
@@ -134,13 +137,13 @@ impl Button{
             let x=pos.0 as f32;
             let y=pos.1 as f32;
             
-            k.vel=Vec2::new(0.0,0.0);
-            k.acc=Vec2::new(0.0,0.0);
+            k.vel=Vector2::zero();
+            k.acc=Vector2::zero();
 
             let dx=self.dim.get_range(axgeom::XAXISS);
             let yx=self.dim.get_range(axgeom::YAXISS);
 
-            k.pos=Vec2::new(dx.left+x*self.spacing,yx.left+y*self.spacing);
+            k.pos=vec2(dx.left+x*self.spacing,yx.left+y*self.spacing);
         }
     }
 }
@@ -151,11 +154,11 @@ pub struct NumberThing{
     pixel_spacing:f32,
     digit_spacing:f32,
     number:usize,
-    top_right:Vec2
+    top_right:Vector2<f32>
 }
 
 impl NumberThing{
-    pub fn new(digit_spacing:f32,pixel_spacing:f32,number:usize,top_right:Vec2)->NumberThing{
+    pub fn new(digit_spacing:f32,pixel_spacing:f32,number:usize,top_right:Vector2<f32>)->NumberThing{
         NumberThing{digits:ascii_num::get_coords(number),pixel_spacing,digit_spacing,number,top_right}
     }
     pub fn update_number(&mut self,number:usize){
@@ -178,13 +181,13 @@ impl NumberThing{
 
                 let x=pos[0] as f32;
                 let y=pos[1] as f32;
-                k.vel=Vec2::new(0.0,0.0);
-                k.acc=Vec2::new(0.0,0.0);
+                k.vel=Vector2::zero();
+                k.acc=Vector2::zero();
 
-                let tr=self.top_right.0;
+                let tr=self.top_right;
                 let ds=self.digit_spacing;
                 let ps=self.pixel_spacing;
-                k.pos=Vec2::new(tr[0]-i*ds+x*ps,tr[1]+y*ps);
+                k.pos=vec2(tr.x-i*ds+x*ps,tr.y+y*ps);
             }
         }
 
