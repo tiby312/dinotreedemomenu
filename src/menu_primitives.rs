@@ -1,12 +1,123 @@
-use axgeom;
+use crate::axgeom;
 use ascii_num;
+use axgeom::*;
 
-
-use cgmath::prelude::*;
-use cgmath::Vector2;
-use cgmath::vec2;
 pub use duckduckgeo::bot::*;
+use ascii_num::*;
+use ascii_num::*;
 
+
+
+pub struct ButtonPosesIter<'a>{
+    poses:core::slice::Iter<'a,Vec2<usize>>,
+    topleft:Vec2<f32>,
+    spacing:f32
+}
+impl<'a> Iterator for ButtonPosesIter<'a>{
+    type Item=Vec2<f32>;
+    fn next(&mut self)->Option<Self::Item>{
+        match self.poses.next(){
+            None=>None,
+            Some(&Vec2{x,y})=>{
+
+                let x=x as f32;
+                let y=y as f32;
+                
+                let dx=self.topleft.x;//self.dim.get_range(axgeom::XAXISS);
+                let yx=self.topleft.y;//dim.get_range(axgeom::YAXISS);
+
+                Some(vec2(dx+x*self.spacing,yx+y*self.spacing))
+            }
+        }
+    }
+}
+
+
+pub struct Button<'a>{
+    poses:symbol::Symbol<'a>,
+    dim:axgeom::Rect<f32>,
+    padding:axgeom::Rect<f32>,
+    spacing:f32
+}
+
+impl<'a> Button<'a>{
+    pub fn get_dim(&self)->&axgeom::Rect<f32>{
+        &self.padding
+    }
+    pub fn new(topleft:Vec2<f32>,poses:symbol::Symbol<'a>,spacing:f32)->Button{
+        let m=poses.get().iter().fold(vec2same(0), |acc, &v| {vec2(acc.x.max(v.x),acc.y.max(v.y))});
+        
+        let dimx=m.x as f32*spacing;
+        let dimy=m.y as f32*spacing;
+        let k=topleft;//get();
+        let dim=axgeom::Rect::new(k.x,k.x+dimx,k.y,k.y+dimy);
+        
+        let mut padding=dim;
+        padding.grow(spacing*2.0);
+        Button{poses,dim,padding,spacing}
+    }
+    pub fn iter(&self)->ButtonPosesIter{
+        let topleft=vec2(self.dim.x.left,self.dim.y.left);
+        ButtonPosesIter{poses:self.poses.get().iter(),topleft,spacing:self.spacing}
+    }
+}
+
+
+
+
+
+//make it right to left.
+pub struct DigitIter<'a>{
+    digit_iter:core::iter::Enumerate<core::iter::Rev<digit::DigitIter<'a>>>,
+    spacing:f32,
+    digit_spacing:f32,
+    top_right:Vec2<f32>,
+}
+
+impl<'a> Iterator for DigitIter<'a>{
+    type Item=ButtonPosesIter<'a>;
+    fn next(&mut self)->Option<Self::Item>{
+        match self.digit_iter.next(){
+            None=>None,
+            Some((index,digit))=>{
+                let spacing=self.spacing;
+                let topleft=vec2(self.top_right.x-(index as f32)*self.digit_spacing,self.top_right.y);
+                Some(ButtonPosesIter{poses:digit.into_inner().iter(),topleft,spacing})
+            }
+        }
+    }
+}
+
+
+pub struct NumberThing<'a>{
+    number:digit::Number<'a>,
+    pixel_spacing:f32,
+    digit_spacing:f32,
+    top_right:Vec2<f32>
+}
+
+impl<'a> NumberThing<'a>{
+    pub fn new(number:digit::Number<'a>,digit_spacing:f32,pixel_spacing:f32,top_right:Vec2<f32>)->NumberThing<'a>{
+        NumberThing{number,pixel_spacing,digit_spacing,top_right}
+    }
+    pub fn update_number(&mut self,number:usize){
+        self.number.update_number(number);
+    }
+    pub fn get_number(&self)->usize{
+        self.number.get_number()
+    }
+    pub fn iter(&self)->DigitIter{
+        DigitIter{
+            digit_iter:self.number.iter().rev().enumerate(),
+            spacing:self.pixel_spacing,
+            digit_spacing:self.digit_spacing,
+            top_right:self.top_right}
+    }
+}
+
+
+
+/*
 
 //TODO put this somewhere else.
 //TODO implement fused iterator.
@@ -28,6 +139,7 @@ impl<I: Iterator> Iterator for IteratorCounter<I> {
         } 
     } 
 }
+*/
 
 
 
@@ -40,10 +152,10 @@ impl Clicker{
     pub fn new()->Clicker{
         Clicker{there_was_finger:false,there_is_finger:false}
     }
-    pub fn update(&mut self,dim:&axgeom::Rect<f32>,poses:&[Vector2<f32>])->bool{
+    pub fn update(&mut self,dim:&axgeom::Rect<f32>,poses:&[Vec2<f32>])->bool{
 
         for i in poses.iter(){
-            if dim.contains_point([i.x,i.y]){
+            if dim.contains_point(*i){
                 self.there_is_finger=true;
             } 
         }
@@ -64,132 +176,5 @@ impl Clicker{
     }
 }
 
-/*
-pub struct OnOffButton{
-    on_but:Button,
-    off_but:Button,
-    dim:axgeom::Rect<f32>,
-    on:bool
-}
-
-impl OnOffButton{
-    pub fn new(topleft:Vec2,poses_off:Vec<(usize,usize)>,poses_on:Vec<(usize,usize)>,spacing:f32)->OnOffButton{
-        let off_but=Button::new(topleft,poses_off,spacing);
-        let on_but=Button::new(topleft,poses_on,spacing);
-        
-        //TODO use this. need to use genric num trait that uses Ord
-        //let dim=on_but.dim.grow_to_fit(off_but.dim);
-        let dim=*on_but.get_dim();
-
-        OnOffButton{off_but,on_but,on:false,dim}
-    }
-    pub fn get_dim(&self)->&axgeom::Rect<f32>{
-        &self.dim
-    }
-
-    pub fn set(&mut self,state:bool){
-        self.on=state;
-    }
-
-    pub fn draw<'a,I:Iterator<Item=&'a mut Bot>>(&self,bb:&mut I){
-        if self.on{
-            self.on_but.draw(bb);
-        }else{
-            self.off_but.draw(bb);
-        }
-    }
-
-}
-*/
-
-pub struct Button{
-    poses:Vec<(usize,usize)>,
-    dim:axgeom::Rect<f32>,
-    padding:axgeom::Rect<f32>,
-    spacing:f32
-}
-
-impl Button{
-    pub fn get_dim(&self)->&axgeom::Rect<f32>{
-        &self.padding
-    }
-    pub fn new(topleft:Vector2<f32>,poses:Vec<(usize,usize)>,spacing:f32)->Button{
-        let m=poses.iter().fold((0,0), |acc, &x| {(acc.0.max(x.0),acc.1.max(x.1))});
-        
-        let dimx=m.0 as f32*spacing;
-        let dimy=m.1 as f32*spacing;
-        let k=topleft;//get();
-        let dim=axgeom::Rect::new(k.x,k.x+dimx,k.y,k.y+dimy);
-        
-        let mut padding=dim;
-        padding.grow(spacing*2.0);
-        Button{poses:poses,dim,padding,spacing}
-    }
-    pub fn draw<'a,I:Iterator<Item=&'a mut Bot>>(&self,bb:&mut I){
-        for pos in self.poses.iter(){
-            //use dinotree::SweepTrait;
-           
-            //let i=i as f32;
-            let k=bb.next().unwrap();
-            
-            //let k=k.get_mut().1;
-            
-            let x=pos.0 as f32;
-            let y=pos.1 as f32;
-            
-            k.vel=Vector2::zero();
-            k.acc=Vector2::zero();
-
-            let dx=self.dim.get_range(axgeom::XAXISS);
-            let yx=self.dim.get_range(axgeom::YAXISS);
-
-            k.pos=vec2(dx.left+x*self.spacing,yx.left+y*self.spacing);
-        }
-    }
-}
 
 
-pub struct NumberThing{
-    digits:ascii_num::PointDigitIterator,//Vec<Vec<(usize,usize)>>,
-    pixel_spacing:f32,
-    digit_spacing:f32,
-    number:usize,
-    top_right:Vector2<f32>
-}
-
-impl NumberThing{
-    pub fn new(digit_spacing:f32,pixel_spacing:f32,number:usize,top_right:Vector2<f32>)->NumberThing{
-        NumberThing{digits:ascii_num::get_coords(number),pixel_spacing,digit_spacing,number,top_right}
-    }
-    pub fn update_number(&mut self,number:usize){
-        self.number=number;
-        self.digits=ascii_num::get_coords(self.number);
-    }
-    pub fn get_number(&self)->usize{
-        self.number
-    }
-    pub fn draw<'a,I:Iterator<Item=&'a mut Bot>>(&self,bb:&mut I){
-        //use dinotree::SweepTrait;
-        //use ascii_num;
-        let length=self.digits.len();
-        for (i,digit) in self.digits.clone().enumerate(){
-            let i=(length-i) as f32;
-            for pos in digit{
-                let k=bb.next().unwrap();
-                
-                //let k=k.get_mut().1;
-
-                let x=pos[0] as f32;
-                let y=pos[1] as f32;
-                k.vel=Vector2::zero();
-                k.acc=Vector2::zero();
-
-                let tr=self.top_right;
-                let ds=self.digit_spacing;
-                let ps=self.pixel_spacing;
-                k.pos=vec2(tr.x-i*ds+x*ps,tr.y+y*ps);
-            }
-        }
-
-    }
-}

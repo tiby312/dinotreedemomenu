@@ -1,7 +1,5 @@
-extern crate dinotreedemo;
-extern crate axgeom;
-extern crate ascii_num;
-extern crate ordered_float;
+
+use ascii_num::*;
 
 use dinotreedemo::*;
 use axgeom::*;
@@ -9,14 +7,11 @@ use axgeom::*;
 use crate::menu_primitives::*;
 use super::*;
 
-use cgmath::prelude::*;
-use cgmath::Vector2;
-use cgmath::vec2;
+use axgeom::Vec2;
 
 
 pub static COLS:&'static [[f32;3]]=
     &[
-        [0.0,1.0,0.0],
         [0.9,0.9,0.9],
         [1.0,0.2,0.2],
         [0.6,0.5,1.0],
@@ -26,18 +21,19 @@ pub static COLS:&'static [[f32;3]]=
     ];
 
 
-pub struct Menu{
+pub struct Menu<'a>{
+    symbols:&'a Symbols,
     bots: Vec<Bot>,
-    buttons:[Button;3],
-    color_button:Button,
+    buttons:[Button<'a>;3],
+    color_button:Button<'a>,
     color_clicker:Clicker,
     col_counter:usize,
-    numberthing:NumberThing
+    numberthing:NumberThing<'a>
 }
 
-impl Menu{
+impl<'a> Menu<'a>{
 
-    pub fn new()->(Menu,[f32;3],Rect<f32>,f32){
+    pub fn new(symbols:&'a Symbols)->(Menu,[f32;3],Rect<f32>,f32){
         
         let num_bots=5_000;
         
@@ -57,22 +53,22 @@ impl Menu{
         //let bots=bot::create_bots(num_bots,&border,&bot_prop);
         //let s=dists::spiral::Spiral::new([0.0,0.0],12.0,1.0);
         //let bots:Vec<Bot>=s.take(num_bot).map(|pos|Bot::new(&Vec2::new(pos[0] as f32,pos[1] as f32))).collect();
-        let z=Vector2::zero();
+        let z=vec2(0.0,0.0);
         let bots:Vec<Bot>=(0..num_bots).map(|_|Bot{pos:z,vel:z,acc:z}).collect();
 
 
 
         let kk=vec2(-200.0,-100.0);
-        let color_button=Button::new(kk,ascii_num::get_misc(3),unit*2.0);
+        let color_button=Button::new(kk,symbols.game_table.lookup(3),unit*2.0);
 
 
         let buttons={
             let mut v=vec2(-200.0,100.0);
-            let b1=Button::new(v,ascii_num::get_misc(0),unit*2.0);
+            let b1=Button::new(v,symbols.game_table.lookup(0),unit*2.0);
             v.x+=unit*20.0;
-            let b2=Button::new(v,ascii_num::get_misc(1),unit*2.0);
+            let b2=Button::new(v,symbols.game_table.lookup(1),unit*2.0);
             v.x+=unit*20.0;
-            let b3=Button::new(v,ascii_num::get_misc(2),unit*2.0);
+            let b3=Button::new(v,symbols.game_table.lookup(2),unit*2.0);
             v.x+=unit*20.0;
             [b1,b2,b3]
         };
@@ -88,12 +84,13 @@ impl Menu{
         let numberthing={
             let x=startx as f32-100.0;
             let y=starty as f32-200.0;
-            NumberThing::new(unit*15.0,unit*2.0,40_000,vec2(x,y))
+            NumberThing::new(symbols.digit_table.lookup_number(40_000),unit*15.0,unit*2.0,vec2(x,y))
         };
 
         let col=COLS[0];
 
         (Menu{
+            symbols,
             bots,
             buttons,
             color_button,
@@ -105,8 +102,8 @@ impl Menu{
 }
 
 
-impl MenuTrait for Menu{
-    fn step(&mut self,poses:&[Vector2<f32>],_border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
+impl<'a> MenuTrait for Menu<'a>{
+    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
@@ -114,13 +111,13 @@ impl MenuTrait for Menu{
             let curr=self.numberthing.get_number();
 
             //up arrow
-            if self.buttons[0].get_dim().contains_point([i.x,i.y]){
+            if self.buttons[0].get_dim().contains_point(*i){
                 self.numberthing.update_number(curr+50);
             }
-            if self.buttons[1].get_dim().contains_point([i.x,i.y]){
+            if self.buttons[1].get_dim().contains_point(*i){
                 self.numberthing.update_number((curr as isize-50).max(1) as usize); 
             }
-            if self.buttons[2].get_dim().contains_point([i.x,i.y]){
+            if self.buttons[2].get_dim().contains_point(*i){
 
                 let (game,rect,radius)=BotSystem::new(curr);
                 return (Some(Box::new(Game{game})),GameResponse{color:None,is_game:true,new_game_world:Some((rect,radius))})
@@ -132,15 +129,27 @@ impl MenuTrait for Menu{
         }
 
         {
-            let mut bb=IteratorCounter::new(bots.iter_mut());
-         
-            self.numberthing.draw(&mut bb);
+            let mut bb=bots.iter_mut();
 
-            for i in self.buttons.iter(){
-                i.draw(&mut bb);
+            
+            for digit in self.numberthing.iter(){
+                for pos in digit{
+                    bb.next().unwrap().pos=pos;
+                }
             }
 
-            self.color_button.draw(&mut bb);
+        
+            for i in self.buttons.iter(){
+                for pos in i.iter(){
+
+                    bb.next().unwrap().pos=pos;
+                }
+            }
+
+
+            for pos in self.color_button.iter(){
+                bb.next().unwrap().pos=pos;
+            };
             
             for b in bb{
                 b.pos=vec2(-10000.0,-10000.0);
@@ -162,7 +171,7 @@ struct Game{
     game:dinotreedemo::BotSystem
 }
 impl MenuTrait for Game{
-    fn step(&mut self,poses:&[Vector2<f32>],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
         self.game.step(poses,border);
         (None,GameResponse{
             color:None,
