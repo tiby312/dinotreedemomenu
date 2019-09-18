@@ -4,7 +4,7 @@ use ascii_num::*;
 use dinotreedemo::*;
 use axgeom::*;
 
-use crate::menu_primitives::*;
+use laid_dot::*;
 use super::*;
 
 use axgeom::Vec2;

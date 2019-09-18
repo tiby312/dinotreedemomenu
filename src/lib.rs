@@ -1,6 +1,5 @@
 pub use dinotreedemo;
 pub use dinotreedemo::dinotree;
-//extern crate axgeom;
 pub use dinotree::axgeom;
 
 use axgeom::Vec2;
@@ -37,13 +36,15 @@ impl Symbols{
         }
     }
 }
-pub struct MenuGame<'a>{
-    symbols:&'a Symbols,
-    state:Box<MenuTrait + 'a>
+pub struct MenuGame{
+    symbols:Box<Symbols>,
+    state:Box<MenuTrait>
 }
-impl<'a> MenuGame<'a>{
-    pub fn new(symbols:&'a Symbols)->(MenuGame<'a>,GameResponse){
-        let (a,col,rect,radius)=menusys::Menu::new(symbols);
+impl MenuGame{
+    pub fn new()->(MenuGame,GameResponse){
+        let symbols=Box::new(Symbols::new());
+    
+        let (a,col,rect,radius)=menusys::Menu::new(unsafe{&*(symbols.as_ref() as *const _)});
         (MenuGame{symbols,state:Box::new(a)},GameResponse{color:Some(col),is_game:false,new_game_world:Some((rect,radius))})
     }
 
@@ -67,4 +68,3 @@ impl<'a> MenuGame<'a>{
 
 
 mod menusys;
-mod menu_primitives;
