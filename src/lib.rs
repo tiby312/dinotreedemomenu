@@ -8,7 +8,7 @@ use axgeom::Vec2;
 use axgeom::Rect;
 
 trait MenuTrait:Send+Sync{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse);
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<dyn MenuTrait>>,GameResponse);
     fn get_bots(&self)->&[Bot];
 }
 
@@ -37,15 +37,15 @@ impl Symbols{
     }
 }
 pub struct MenuGame{
-    symbols:Box<Symbols>,
-    state:Box<MenuTrait>
+    _symbols:Box<Symbols>,
+    state:Box<dyn MenuTrait>
 }
 impl MenuGame{
     pub fn new()->(MenuGame,GameResponse){
         let symbols=Box::new(Symbols::new());
     
         let (a,col,rect,radius)=menusys::Menu::new(unsafe{&*(symbols.as_ref() as *const _)});
-        (MenuGame{symbols,state:Box::new(a)},GameResponse{color:Some(col),is_game:false,new_game_world:Some((rect,radius))})
+        (MenuGame{_symbols:symbols,state:Box::new(a)},GameResponse{color:Some(col),is_game:false,new_game_world:Some((rect,radius))})
     }
 
     pub fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->GameResponse{

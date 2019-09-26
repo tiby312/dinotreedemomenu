@@ -1,6 +1,4 @@
 
-use ascii_num::*;
-
 use dinotreedemo::*;
 use axgeom::*;
 
@@ -22,7 +20,6 @@ pub static COLS:&'static [[f32;3]]=
 
 
 pub struct Menu<'a>{
-    symbols:&'a Symbols,
     bots: Vec<Bot>,
     buttons:[Button<'a>;3],
     color_button:Button<'a>,
@@ -90,7 +87,6 @@ impl<'a> Menu<'a>{
         let col=COLS[0];
 
         (Menu{
-            symbols,
             bots,
             buttons,
             color_button,
@@ -103,7 +99,7 @@ impl<'a> Menu<'a>{
 
 
 impl<'a> MenuTrait for Menu<'a>{
-    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>)->(Option<Box<dyn MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
@@ -171,7 +167,7 @@ struct Game{
     game:dinotreedemo::BotSystem
 }
 impl MenuTrait for Game{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<dyn MenuTrait>>,GameResponse){
         self.game.step(poses,border);
         (None,GameResponse{
             color:None,
