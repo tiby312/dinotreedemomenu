@@ -19,18 +19,18 @@ pub static COLS:&'static [[f32;3]]=
     ];
 
 
-pub struct Menu<'a>{
+pub struct Menu{
     bots: Vec<Bot>,
-    buttons:[Button<'a>;3],
-    color_button:Button<'a>,
+    buttons:[Button;3],
+    color_button:Button,
     color_clicker:Clicker,
     col_counter:usize,
-    numberthing:NumberThing<'a>
+    numberthing:NumberThing
 }
 
-impl<'a> Menu<'a>{
+impl Menu{
 
-    pub fn new(symbols:&'a Symbols)->(Menu,[f32;3],Rect<f32>,f32){
+    pub fn new(symbols:&Symbols)->(Menu,[f32;3],Rect<f32>,f32){
         
         let num_bots=5_000;
         
@@ -56,16 +56,16 @@ impl<'a> Menu<'a>{
 
 
         let kk=vec2(-200.0,-100.0);
-        let color_button=Button::new(kk,symbols.game_table.lookup(3),unit*2.0);
+        let color_button=Button::new(kk,3,unit*2.0,&symbols.game_table.0);
 
 
         let buttons={
             let mut v=vec2(-200.0,100.0);
-            let b1=Button::new(v,symbols.game_table.lookup(0),unit*2.0);
+            let b1=Button::new(v,0,unit*2.0,&symbols.game_table.0);
             v.x+=unit*20.0;
-            let b2=Button::new(v,symbols.game_table.lookup(1),unit*2.0);
+            let b2=Button::new(v,1,unit*2.0,&symbols.game_table.0);
             v.x+=unit*20.0;
-            let b3=Button::new(v,symbols.game_table.lookup(2),unit*2.0);
+            let b3=Button::new(v,2,unit*2.0,&symbols.game_table.0);
             v.x+=unit*20.0;
             [b1,b2,b3]
         };
@@ -81,7 +81,7 @@ impl<'a> Menu<'a>{
         let numberthing={
             let x=startx as f32-100.0;
             let y=starty as f32-200.0;
-            NumberThing::new(symbols.digit_table.lookup_number(40_000),unit*15.0,unit*2.0,vec2(x,y))
+            NumberThing::new(40_000,unit*15.0,unit*2.0,vec2(x,y))
         };
 
         let col=COLS[0];
@@ -98,8 +98,8 @@ impl<'a> Menu<'a>{
 }
 
 
-impl<'a> MenuTrait for Menu<'a>{
-    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>)->(Option<Box<dyn MenuTrait>>,GameResponse){
+impl MenuTrait for Menu{
+    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
@@ -128,7 +128,7 @@ impl<'a> MenuTrait for Menu<'a>{
             let mut bb=bots.iter_mut();
 
             
-            for digit in self.numberthing.iter(){
+            for digit in self.numberthing.iter(&symbols.digit_table){
                 for pos in digit{
                     bb.next().unwrap().pos=pos;
                 }
@@ -136,14 +136,14 @@ impl<'a> MenuTrait for Menu<'a>{
 
         
             for i in self.buttons.iter(){
-                for pos in i.iter(){
+                for pos in i.iter(&symbols.game_table.0){
 
                     bb.next().unwrap().pos=pos;
                 }
             }
 
 
-            for pos in self.color_button.iter(){
+            for pos in self.color_button.iter(&symbols.game_table.0){
                 bb.next().unwrap().pos=pos;
             };
             
@@ -167,7 +167,7 @@ struct Game{
     game:dinotreedemo::BotSystem
 }
 impl MenuTrait for Game{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>)->(Option<Box<dyn MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
         self.game.step(poses,border);
         (None,GameResponse{
             color:None,
