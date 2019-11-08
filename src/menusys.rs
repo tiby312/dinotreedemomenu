@@ -114,8 +114,8 @@ impl MenuTrait for Menu{
                 self.numberthing.update_number((curr as isize-50).max(1) as usize); 
             }
             if self.buttons[2].get_dim().contains_point(*i){
-
-                let (game,rect,radius)=BotSystem::new(curr);
+                let aspect_ratio=1.3;
+                let (game,rect,radius)=BotSystem::new(aspect_ratio,curr);
                 return (Some(Box::new(Game{game})),GameResponse{color:None,is_game:true,new_game_world:Some((rect,radius))})
             }
         }
