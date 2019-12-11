@@ -1,6 +1,5 @@
-pub use dinotreedemo;
-pub use dinotreedemo::dinotree;
-pub use dinotree::axgeom;
+use dinotreedemo;
+use axgeom;
 
 use axgeom::Vec2;
 

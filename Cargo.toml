@@ -5,7 +5,9 @@ authors = ["Ken Reed <kenakioreed@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+axgeom ="*"
+ordered-float ="*"
+duckduckgeo="*"
 dinotreedemo={git="https://github.com/tiby312/dinotreedemo.git"}
 ascii_num={git="https://github.com/tiby312/ascii_num.git"}
-duckduckgeo="*"
 laid_dot={git="https://github.com/tiby312/laid_dot.git"}
