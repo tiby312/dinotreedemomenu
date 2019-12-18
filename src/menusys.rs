@@ -37,8 +37,8 @@ impl Menu{
         let startx=500.0;
         let starty=500.0;
 
-        //let border= axgeom::Rect::new(NotNaN::new(-startx).unwrap(),NotNaN::new(startx).unwrap(),NotNaN::new(-starty).unwrap(),NotNaN::new(starty).unwrap());
-        let borderf32= axgeom::Rect::new(-startx,startx ,-starty,starty);
+        //let borderf32= axgeom::Rect::new(-startx,startx ,-starty,starty);
+        let borderf32= rect(0.0,1000.0,0.0,1000.0);
 
         //used as the building block for all positions
         let unit=8.0;//bot::get_unit(startx,starty);
@@ -55,12 +55,12 @@ impl Menu{
 
 
 
-        let kk=vec2(-200.0,-100.0);
+        let kk=vec2(200.0,100.0);
         let color_button=Button::new(kk,3,unit*2.0,&symbols.game_table.0);
 
 
         let buttons={
-            let mut v=vec2(-200.0,100.0);
+            let mut v=vec2(200.0,400.0);
             let b1=Button::new(v,0,unit*2.0,&symbols.game_table.0);
             v.x+=unit*20.0;
             let b2=Button::new(v,1,unit*2.0,&symbols.game_table.0);
@@ -79,8 +79,8 @@ impl Menu{
         */
 
         let numberthing={
-            let x=startx as f32-100.0;
-            let y=starty as f32-200.0;
+            let x=700.0;
+            let y=500.0;
             NumberThing::new(40_000,unit*15.0,unit*2.0,vec2(x,y))
         };
 
@@ -99,7 +99,7 @@ impl Menu{
 
 
 impl MenuTrait for Menu{
-    fn step(&mut self,poses:&[Vec2<f32>],_border:&Rect<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],_border:&Vec2<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
@@ -167,7 +167,7 @@ struct Game{
     game:dinotreedemo::BotSystem
 }
 impl MenuTrait for Game{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Vec2<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
         self.game.step(poses,border);
         (None,GameResponse{
             color:None,

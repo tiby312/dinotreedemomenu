@@ -7,12 +7,11 @@ use axgeom::Vec2;
 use axgeom::Rect;
 
 trait MenuTrait:Send+Sync{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse);
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Vec2<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse);
     fn get_bots(&self)->&[Bot];
 }
 
 
-pub use dinotreedemo::compute_border;
 pub use duckduckgeo::bot::*;
 
 
@@ -45,7 +44,7 @@ impl MenuGame{
         (MenuGame{state:Box::new(a)},GameResponse{color:Some(col),is_game:false,new_game_world:Some((rect,radius))})
     }
 
-    pub fn step(&mut self,poses:&[Vec2<f32>],border:&Rect<f32>,symbols:&Symbols)->GameResponse{
+    pub fn step(&mut self,poses:&[Vec2<f32>],border:&Vec2<f32>,symbols:&Symbols)->GameResponse{
         let (a,b)=self.state.step(poses,border,symbols);
         match a{
             Some(x)=>{
