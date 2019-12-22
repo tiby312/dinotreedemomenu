@@ -30,16 +30,25 @@ pub struct Menu{
 
 impl Menu{
 
-    pub fn new(symbols:&Symbols)->(Menu,[f32;3],Rect<f32>,f32){
+    pub fn new(aspect_ratio:axgeom::AspectRatio,symbols:&Symbols)->(Menu,[f32;3],axgeom::Vec2AspectRatio,f32){
         
         let num_bots=5_000;
         
         let startx=500.0;
         let starty=500.0;
 
-        //let borderf32= axgeom::Rect::new(-startx,startx ,-starty,starty);
-        let borderf32= rect(0.0,1000.0,0.0,1000.0);
+        let borderf32= vec2(1000.0,1000.0);
 
+        let aa=if aspect_ratio.width_over_height()<1.0{
+            Vec2AspectRatio{ratio:aspect_ratio,width:1000.0}
+        }else{
+
+            let k=Vec2AspectRatio{ratio:aspect_ratio,width:1000.0*aspect_ratio.width_over_height()};
+            dbg!(k);
+            k
+
+        };
+        
         //used as the building block for all positions
         let unit=8.0;//bot::get_unit(startx,starty);
         
@@ -70,14 +79,6 @@ impl Menu{
             [b1,b2,b3]
         };
 
-        /*
-        let kk=Vec2::new(unit*5.0,starty as f32-unit*70.0);    
-        let debug_button=OnOffButton::new(kk,
-                ascii_num::get_misc(4),
-                ascii_num::get_misc(5),
-                unit*2.0);
-        */
-
         let numberthing={
             let x=700.0;
             let y=500.0;
@@ -93,18 +94,20 @@ impl Menu{
             col_counter:0 , //TODO hack
             color_clicker:Clicker::new(),
             numberthing,
-        },col,borderf32,10.0)
+        },col,aa ,10.0)
     }
 }
 
 
 impl MenuTrait for Menu{
-    fn step(&mut self,poses:&[Vec2<f32>],_border:&Vec2<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],_border:&Vec2<f32>,symbols:&Symbols,aspect_ratio:axgeom::AspectRatio)->(Option<Box<dyn MenuTrait>>,GameResponse){
         
         let bots=&mut self.bots;
         
         for i in poses.iter(){
             let curr=self.numberthing.get_number();
+
+            dbg!(self.buttons[0].get_dim(),*i);
 
             //up arrow
             if self.buttons[0].get_dim().contains_point(*i){
@@ -114,7 +117,6 @@ impl MenuTrait for Menu{
                 self.numberthing.update_number((curr as isize-50).max(1) as usize); 
             }
             if self.buttons[2].get_dim().contains_point(*i){
-                let aspect_ratio=1.3;
                 let (game,rect,radius)=BotSystem::new(aspect_ratio,curr);
                 return (Some(Box::new(Game{game})),GameResponse{color:None,is_game:true,new_game_world:Some((rect,radius))})
             }
@@ -127,21 +129,17 @@ impl MenuTrait for Menu{
         {
             let mut bb=bots.iter_mut();
 
-            
             for digit in self.numberthing.iter(&symbols.digit_table){
                 for pos in digit{
                     bb.next().unwrap().pos=pos;
                 }
             }
-
         
             for i in self.buttons.iter(){
                 for pos in i.iter(&symbols.game_table.0){
-
                     bb.next().unwrap().pos=pos;
                 }
             }
-
 
             for pos in self.color_button.iter(&symbols.game_table.0){
                 bb.next().unwrap().pos=pos;
@@ -167,7 +165,7 @@ struct Game{
     game:dinotreedemo::BotSystem
 }
 impl MenuTrait for Game{
-    fn step(&mut self,poses:&[Vec2<f32>],border:&Vec2<f32>,symbols:&Symbols)->(Option<Box<dyn MenuTrait>>,GameResponse){
+    fn step(&mut self,poses:&[Vec2<f32>],border:&Vec2<f32>,symbols:&Symbols,aspect_ratio:axgeom::AspectRatio)->(Option<Box<dyn MenuTrait>>,GameResponse){
         self.game.step(poses,border);
         (None,GameResponse{
             color:None,
