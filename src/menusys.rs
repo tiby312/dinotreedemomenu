@@ -30,7 +30,7 @@ pub struct Menu{
 
 impl Menu{
 
-    pub fn new(aspect_ratio:axgeom::AspectRatio,symbols:&Symbols)->(Menu,[f32;3],axgeom::Vec2AspectRatio,f32){
+    pub fn new(aspect_ratio:axgeom::AspectRatio,symbols:&Symbols)->(Menu,[f32;3],axgeom::FixedAspectVec2,f32){
         
         let num_bots=5_000;
         
@@ -40,10 +40,10 @@ impl Menu{
         let borderf32= vec2(1000.0,1000.0);
 
         let aa=if aspect_ratio.width_over_height()<1.0{
-            Vec2AspectRatio{ratio:aspect_ratio,width:1000.0}
+            FixedAspectVec2{ratio:aspect_ratio,width:1000.0}
         }else{
 
-            let k=Vec2AspectRatio{ratio:aspect_ratio,width:1000.0*aspect_ratio.width_over_height()};
+            let k=FixedAspectVec2{ratio:aspect_ratio,width:1000.0*aspect_ratio.width_over_height()};
             dbg!(k);
             k
 

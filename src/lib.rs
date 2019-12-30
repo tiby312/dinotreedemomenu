@@ -19,7 +19,7 @@ pub struct GameResponse
 {
     pub color:          Option<[f32;3]>,
     pub is_game:        bool,
-    pub new_game_world: Option<(axgeom::Vec2AspectRatio,f32)>
+    pub new_game_world: Option<(axgeom::FixedAspectVec2,f32)>
 }
 
 pub struct Symbols{
